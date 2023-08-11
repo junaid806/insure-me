@@ -25,5 +25,5 @@
     command: docker rm insureme
 
   - name: Deploy Docker Container
-    command: docker run --name insureme -itd -p 8084:8081 junaidkhan806/insureme:3.0
+    command: docker run --name insureme -itd -p 8084:8081 niladrimondaldcr/insureme:3.0
     
