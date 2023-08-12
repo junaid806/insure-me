@@ -6,7 +6,7 @@ node {
     def dockerCMD
     def tagName
     
-    stage('Prepare the environment based on the global tools'){
+    stage('prepare the environment based on the global tools'){
         echo 'Initialize the variables'
         mavenHome = tool name: 'myMaven' , type: 'maven'
         mavenCMD = "${mavenHome}/bin/mvn"
@@ -16,47 +16,45 @@ node {
         
     }
     stage('checkout the git repository'){
-        echo 'Cloning the repository .................................'
-        git 'https://github.com/niladrimondal/insure-me.git'
+        echo 'cloning the repository...................................'
+        git 'https://github.com/junaid806/insure-me.git'
         
     }
     stage('package the insume application'){
-        echo 'clean ... Compile....Test....Package....'
+        echo 'clean.... Compile......Test......Package......'
         sh "${mavenCMD} clean package"
+        
     }
-    stage('Publish the Test report'){
-        echo 'publish the test reports'
+    stage('publish the test report'){
+        echo 'publish the test report'
         publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '/var/lib/jenkins/workspace/insureme-deployment-pipeline/target/surefire-reports', reportFiles: 'index.html', reportName: 'HTML Report', reportTitles: '', useWrapperFileDirectly: true])
         
     }
     stage('Build the Docker Image using the Docker file'){
         try{
-        echo 'Building the Docker Image'    
-        sh "${dockerCMD} build -t niladrimondaldcr/insureme:${tagName} ."
+        echo 'Building the Docker Image'
+        sh "${dockerCMD} build -t junaidkhan806/insureme:${tagName} ."
         }
         catch(Exception e){
-            echo 'Exception Occur in Stage Docker Biuld'
+            echo 'Exception Occur in stage Docker Build'
             currentBuild.result = "FAILURE"
-            emailext body: '''Hello 
+            emailext body: '''Hello
 
-            We are having issue with the Docker Build Command . Can you please look into the same.
+            We are having issue with the Docker Build command. Can you Please look into the same
 
             Thanks,
-            Jenkins Admin''', subject: 'Attention: ${JOB_NAME} is failed. Please look into the ${BUILD_NUMBER} ', to: 'niladrimondal.mondal@gmail.com'
+            Jenkins Admin''', subject: 'Attention:$(JOB_NAME) is failed. Please look into the $(BUILD_NUMBER)', to: 'junaidkhan806@gmail.com'
         }
     }
-    stage('Push the Docker image'){
+    stage('push the Docker image'){
         echo 'push the Docker Image to the dockerhub'
-        withCredentials([string(credentialsId: 'DockerPassword', variable: 'dockerpassword')]) {
-                sh "${dockerCMD} login -u niladrimondaldcr -p ${dockerpassword}"
-                sh "${dockerCMD} push niladrimondaldcr/insureme:${tagName}"
+        withCredentials([string(credentialsId: 'dockerpassword', variable: 'dockerpassword')])  {
+                sh "${dockerCMD} login -u junaidkhan806 -p ${dockerpassword}"
+                sh "${dockerCMD} push junaidkhan806/insureme:${tagName}"
         }
-        
     }
-    stage('configure the application in the Test Server using Ansible'){
+    stage('configure the application in the Test server using Ansible'){
         echo 'deploy application on test server'
-        ansiblePlaybook become: true, credentialsId: 'ansiblekey', disableHostKeyChecking: true, installation: 'myAnsible', inventory: '/etc/ansible/hosts', playbook: 'ansible-playbook.yml'
-        
-        
+        ansiblePlaybook become: true, credentialsId: 'AnsibleKey', disableHostKeyChecking: true, installation: 'myAnsible', inventory: '/etc/ansible/hosts', playbook: 'ansible-playbook.yml'
     }
 }
