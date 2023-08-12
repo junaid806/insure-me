@@ -17,7 +17,7 @@
     become_user : root
 
   - name: Deploy Docker Container
-    command: docker run -itd -p 8084:8081 niladrimondaldcr/insuremestaragile:4.0
+    command: docker run -itd -p 8084:8081 junaidkhan806/insureme:3.0
   
   - name: Copy file with owner and permission, using symbolic representation
     ansible.builtin.copy:
